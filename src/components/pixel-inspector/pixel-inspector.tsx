@@ -114,7 +114,7 @@ export function PixelInspector() {
                 style={{ backgroundColor: paint.hex }}
                 aria-hidden="true"
               />
-              <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-sm bg-muted">
+              <div className="border h-2 min-w-0 flex-1 overflow-hidden rounded-sm bg-muted">
                 <div
                   className="h-full"
                   style={{
