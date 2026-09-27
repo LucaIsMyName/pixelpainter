@@ -37,6 +37,7 @@ function DropdownMenuContent({
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
+        data-component="DropdownMenuContent"
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         align={align}
@@ -89,6 +90,7 @@ function DropdownMenuCheckboxItem({
 }) {
   return (
     <DropdownMenuPrimitive.CheckboxItem
+      data-component="DropdownMenuCheckboxItem"
       data-slot="dropdown-menu-checkbox-item"
       data-inset={inset}
       className={cn(
@@ -99,6 +101,7 @@ function DropdownMenuCheckboxItem({
       {...props}
     >
       <span
+        data-component="DropdownMenuCheckboxItemIndicator"
         className="pointer-events-none absolute right-2 flex items-center justify-center"
         data-slot="dropdown-menu-checkbox-item-indicator"
       >
@@ -117,6 +120,7 @@ function DropdownMenuRadioGroup({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>) {
   return (
     <DropdownMenuPrimitive.RadioGroup
+      data-component="DropdownMenuRadioGroup"
       data-slot="dropdown-menu-radio-group"
       {...props}
     />
@@ -133,6 +137,7 @@ function DropdownMenuRadioItem({
 }) {
   return (
     <DropdownMenuPrimitive.RadioItem
+      data-component="DropdownMenuRadioItem"
       data-slot="dropdown-menu-radio-item"
       data-inset={inset}
       className={cn(
@@ -142,6 +147,7 @@ function DropdownMenuRadioItem({
       {...props}
     >
       <span
+        data-component="DropdownMenuRadioItemIndicator"
         className="pointer-events-none absolute right-2 flex items-center justify-center"
         data-slot="dropdown-menu-radio-item-indicator"
       >
@@ -164,6 +170,7 @@ function DropdownMenuLabel({
 }) {
   return (
     <DropdownMenuPrimitive.Label
+      data-component="DropdownMenuLabel"
       data-slot="dropdown-menu-label"
       data-inset={inset}
       className={cn(
@@ -181,6 +188,7 @@ function DropdownMenuSeparator({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Separator>) {
   return (
     <DropdownMenuPrimitive.Separator
+      data-component="DropdownMenuSeparator"
       data-slot="dropdown-menu-separator"
       className={cn("-mx-1 my-1 h-px bg-border", className)}
       {...props}
@@ -194,6 +202,7 @@ function DropdownMenuShortcut({
 }: React.ComponentProps<"span">) {
   return (
     <span
+      data-component="DropdownMenuShortcut"
       data-slot="dropdown-menu-shortcut"
       className={cn(
         "ml-auto text-xs tracking-widest text-muted-foreground group-focus/dropdown-menu-item:text-accent-foreground",
@@ -207,7 +216,7 @@ function DropdownMenuShortcut({
 function DropdownMenuSub({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Sub>) {
-  return <DropdownMenuPrimitive.Sub data-slot="dropdown-menu-sub" {...props} />
+  return <DropdownMenuPrimitive.Sub data-component="DropdownMenuSub" data-slot="dropdown-menu-sub" {...props} />
 }
 
 function DropdownMenuSubTrigger({
@@ -220,6 +229,7 @@ function DropdownMenuSubTrigger({
 }) {
   return (
     <DropdownMenuPrimitive.SubTrigger
+      data-component="DropdownMenuSubTrigger"
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
       className={cn(
@@ -240,6 +250,7 @@ function DropdownMenuSubContent({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
   return (
     <DropdownMenuPrimitive.SubContent
+      data-component="DropdownMenuSubContent"
       data-slot="dropdown-menu-sub-content"
       className={cn("z-50 min-w-[96px] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-lg bg-popover p-1 text-popover-foreground shadow-lg ring-1 ring-foreground/10 duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className )}
       {...props}

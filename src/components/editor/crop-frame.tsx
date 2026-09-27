@@ -109,8 +109,9 @@ export function CropFrame({
 
   return (
     <div
+      data-component="CropFrame"
       ref={containerRef}
-      className="relative h-full min-h-0 w-full touch-none overflow-hidden bg-neutral-950"
+      className="relative h-full min-h-0 w-full touch-none overflow-hidden bg-[radial-gradient(circle_at_center,var(--muted)_0.8px,transparent_0.8px)] bg-size-[14px_14px] bg-neutral-950"
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
@@ -159,7 +160,7 @@ export function CropFrame({
             key={handle}
             type="button"
             aria-label={`Resize crop ${handle}`}
-            className="absolute size-3 rounded-sm border border-neutral-900 bg-white"
+            className="absolute size-6 rounded-sm border border-neutral-900 bg-white"
             style={handleStyle(handle)}
             onPointerDown={(event) => {
               event.stopPropagation();
@@ -229,13 +230,13 @@ function handleStyle(handle: CropHandle): {
   cursor: string;
 } {
   if (handle === "nw") {
-    return { left: "-6px", top: "-6px", cursor: "nwse-resize" };
+    return { left: "-12px", top: "-12px", cursor: "nwse-resize" };
   }
   if (handle === "ne") {
-    return { right: "-6px", top: "-6px", cursor: "nesw-resize" };
+    return { right: "-12px", top: "-12px", cursor: "nesw-resize" };
   }
   if (handle === "sw") {
-    return { left: "-6px", bottom: "-6px", cursor: "nesw-resize" };
+    return { left: "-12px", bottom: "-12px", cursor: "nesw-resize" };
   }
-  return { right: "-6px", bottom: "-6px", cursor: "nwse-resize" };
+  return { right: "-12px", bottom: "-12px", cursor: "nwse-resize" };
 }

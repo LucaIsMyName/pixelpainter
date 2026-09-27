@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { PixelGrid } from "@/components/pixel-grid/pixel-grid";
 import { useElementSize } from "@/hooks/use-element-size";
 import { PIXEL_CELL_SIZE } from "@/lib/image-processing/dimensions";
+import { referenceOverlayStyle } from "@/lib/image-processing/reference-overlay";
 import { useProject } from "@/state/project-context";
 
 const MIN_ZOOM = 0.15;
@@ -26,6 +27,10 @@ export function PixelViewport() {
     panX: number;
     panY: number;
     moved: boolean;
+  } | null>(null);
+  const pinchRef = useRef<{
+    distance: number;
+    zoom: number;
   } | null>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -130,7 +135,28 @@ export function PixelViewport() {
     return () => element.removeEventListener("wheel", onWheel);
   }, [viewportRef]);
 
+  const activePointersRef = useRef(new Map<number, { x: number; y: number }>());
+
   function onPointerDown(event: React.PointerEvent<HTMLDivElement>): void {
+    activePointersRef.current.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+
+    if (activePointersRef.current.size === 2) {
+      const points = [...activePointersRef.current.values()];
+      const a = points[0];
+      const b = points[1];
+      if (a && b) {
+        pinchRef.current = {
+          distance: Math.hypot(b.x - a.x, b.y - a.y),
+          zoom: viewRef.current.zoom,
+        };
+        dragRef.current = null;
+      }
+      return;
+    }
+
     if (event.button !== 0) {
       return;
     }
@@ -146,6 +172,35 @@ export function PixelViewport() {
   }
 
   function onPointerMove(event: React.PointerEvent<HTMLDivElement>): void {
+    if (activePointersRef.current.has(event.pointerId)) {
+      activePointersRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+    }
+
+    const pinch = pinchRef.current;
+    if (pinch && activePointersRef.current.size >= 2) {
+      const points = [...activePointersRef.current.values()];
+      const a = points[0];
+      const b = points[1];
+      if (a && b) {
+        const distance = Math.hypot(b.x - a.x, b.y - a.y);
+        if (pinch.distance > 0) {
+          const factor = distance / pinch.distance;
+          const nextZoom = clamp(pinch.zoom * factor, MIN_ZOOM, MAX_ZOOM);
+          const cx = (a.x + b.x) / 2 - event.currentTarget.getBoundingClientRect().left;
+          const cy = (a.y + b.y) / 2 - event.currentTarget.getBoundingClientRect().top;
+          const current = viewRef.current;
+          const worldX = (cx - current.panX) / current.zoom;
+          const worldY = (cy - current.panY) / current.zoom;
+          applyView(nextZoom, cx - worldX * nextZoom, cy - worldY * nextZoom);
+          suppressClickRef.current = true;
+        }
+      }
+      return;
+    }
+
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) {
       return;
@@ -163,6 +218,11 @@ export function PixelViewport() {
   }
 
   function onPointerUp(event: React.PointerEvent<HTMLDivElement>): void {
+    activePointersRef.current.delete(event.pointerId);
+    if (activePointersRef.current.size < 2) {
+      pinchRef.current = null;
+    }
+
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) {
       return;
@@ -176,33 +236,55 @@ export function PixelViewport() {
     }, 0);
   }
 
+  const showReference =
+    state.referenceSplitEnabled &&
+    state.source &&
+    state.crop &&
+    state.pixels.length > 0;
+
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+    <div data-component="PixelViewport" className="flex min-h-0 min-w-0 flex-1 flex-col">
       <div
         ref={viewportRef}
-        className="relative min-h-0 flex-1 cursor-grab overflow-hidden bg-[radial-gradient(circle_at_center,var(--muted)_0.8px,transparent_0.8px)] bg-size-[14px_14px] active:cursor-grabbing"
+        className="relative min-h-0 flex-1 cursor-grab overflow-hidden bg-[radial-gradient(circle_at_center,var(--muted)_0.8px,transparent_0.8px)] bg-size-[14px_14px] touch-none active:cursor-grabbing"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
         <div
-          className="origin-top-left will-change-transform"
+          className="relative origin-top-left will-change-transform"
           style={{
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
           }}
         >
+          {showReference ? (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute left-0 top-0"
+              style={{
+                ...referenceOverlayStyle(
+                  state.source!,
+                  state.crop!,
+                  gridWidth,
+                  gridHeight,
+                ),
+                opacity: state.referenceSplitOpacity,
+              }}
+            />
+          ) : null}
           <PixelGrid
             pixels={state.pixels}
             selected={state.selectedPixel}
             showGrid={zoom >= 2}
+            showMismatchHighlight={state.showMismatchHighlight}
             suppressClickRef={suppressClickRef}
             onSelect={(x, y) => selectPixel({ x, y })}
             onClear={() => selectPixel(null)}
           />
         </div>
       </div>
-      <div className="flex shrink-0 items-center gap-1.5 border-t border-border px-3 py-2">
+      <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-t border-border px-3 py-2">
         <Button
           type="button"
           variant="outline"
@@ -230,6 +312,11 @@ export function PixelViewport() {
         <Button type="button" variant="ghost" size="xs" onClick={resetZoom}>
           Reset
         </Button>
+        {zoom >= 2 ? (
+          <span className="text-[11px] text-muted-foreground">
+            Grid lines · 1 cell = {PIXEL_CELL_SIZE}px
+          </span>
+        ) : null}
       </div>
     </div>
   );

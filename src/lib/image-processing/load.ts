@@ -18,6 +18,19 @@ export function releaseSource(source: SourceImage | null): void {
   source.bitmap.close();
 }
 
+export async function loadImageBlob(
+  blob: Blob,
+  fileName: string,
+): Promise<SourceImage> {
+  const file =
+    blob instanceof File
+      ? blob
+      : new File([blob], fileName, {
+          type: blob.type || "application/octet-stream",
+        });
+  return loadImageFile(file);
+}
+
 export async function loadImageFile(file: File): Promise<SourceImage> {
   if (!isSupportedImageFile(file)) {
     throw new Error("Unsupported image type. Please use PNG, JPG, or WebP.");

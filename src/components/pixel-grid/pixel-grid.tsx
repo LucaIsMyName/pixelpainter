@@ -1,9 +1,13 @@
-import { useCallback, useMemo, useState, type KeyboardEvent, type RefObject } from "react";
+import { useCallback, useMemo, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import type { PixelData } from "@/types";
-import { rgbToHex, formatRgb } from "@/lib/color";
+import { rgbDistance, rgbToHex, formatRgb } from "@/lib/color";
 import { PIXEL_CELL_SIZE } from "@/lib/image-processing/dimensions";
 import { PixelCell } from "@/components/pixel-grid/pixel-cell";
+import {
+  PixelGridCanvas,
+  shouldUseCanvasGrid,
+} from "@/components/pixel-grid/pixel-grid-canvas";
 
 const TOOLTIP_OFFSET = 12;
 const TOOLTIP_WIDTH = 168;
@@ -28,6 +32,7 @@ type PixelGridProps = {
   pixels: PixelData[][];
   selected: { x: number; y: number } | null;
   showGrid: boolean;
+  showMismatchHighlight: boolean;
   suppressClickRef: RefObject<boolean>;
   onSelect: (x: number, y: number) => void;
   onClear: () => void;
@@ -42,10 +47,29 @@ type HoverState = {
   top: number;
 };
 
+function HoverTooltip({ hovered }: { hovered: HoverState }) {
+  return createPortal(
+    <div
+      data-component="HoverTooltip"
+      role="tooltip"
+      className="pointer-events-none fixed z-50 rounded-md border border-border bg-popover px-2.5 py-2 text-[11px] leading-4 text-popover-foreground shadow-lg"
+      style={{ left: hovered.left, top: hovered.top }}
+    >
+      <div className="font-medium">
+        Pixel {hovered.x}, {hovered.y}
+      </div>
+      <div className="mt-1 font-mono">HEX: {hovered.hex}</div>
+      <div className="font-mono">RGB: {hovered.rgb}</div>
+    </div>,
+    document.body,
+  );
+}
+
 export function PixelGrid({
   pixels,
   selected,
   showGrid,
+  showMismatchHighlight,
   suppressClickRef,
   onSelect,
   onClear,
@@ -53,6 +77,7 @@ export function PixelGrid({
   const height = pixels.length;
   const width = pixels[0]?.length ?? 0;
   const [hovered, setHovered] = useState<HoverState | null>(null);
+  const useCanvas = shouldUseCanvasGrid(width, height);
 
   const onHover = useCallback(
     (x: number, y: number, clientX: number, clientY: number) => {
@@ -82,7 +107,12 @@ export function PixelGrid({
   const selectedKey = selected ? `${selected.x}-${selected.y}` : "";
 
   const cells = useMemo(() => {
-    const list: Array<{ x: number; y: number; hex: string }> = [];
+    const list: Array<{
+      x: number;
+      y: number;
+      hex: string;
+      mismatch: boolean;
+    }> = [];
     for (let y = 0; y < height; y += 1) {
       const row = pixels[y];
       if (!row) {
@@ -93,55 +123,48 @@ export function PixelGrid({
         if (!pixel) {
           continue;
         }
-        list.push({ x, y, hex: rgbToHex(pixel.targetColor) });
+        list.push({
+          x,
+          y,
+          hex: rgbToHex(pixel.targetColor),
+          mismatch:
+            showMismatchHighlight &&
+            rgbDistance(pixel.targetColor, pixel.mix.reconstructed) > 18,
+        });
       }
     }
     return list;
-  }, [height, pixels, width]);
+  }, [height, pixels, showMismatchHighlight, width]);
 
-  function onKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
-    if (!selected) {
-      if (
-        event.key === "ArrowRight" ||
-        event.key === "ArrowLeft" ||
-        event.key === "ArrowUp" ||
-        event.key === "ArrowDown"
-      ) {
-        onSelect(0, 0);
-        event.preventDefault();
-      }
-      return;
-    }
-    let x = selected.x;
-    let y = selected.y;
-    if (event.key === "ArrowRight") {
-      x = Math.min(width - 1, x + 1);
-    } else if (event.key === "ArrowLeft") {
-      x = Math.max(0, x - 1);
-    } else if (event.key === "ArrowDown") {
-      y = Math.min(height - 1, y + 1);
-    } else if (event.key === "ArrowUp") {
-      y = Math.max(0, y - 1);
-    } else if (event.key === "Escape") {
-      event.preventDefault();
-      onClear();
-      return;
-    } else {
-      return;
-    }
-    event.preventDefault();
-    onSelect(x, y);
+  if (useCanvas) {
+    return (
+      <>
+        <PixelGridCanvas
+          data-component="PixelGridCanvas"
+          pixels={pixels}
+          selected={selected}
+          showGrid={showGrid}
+          showMismatchHighlight={showMismatchHighlight}
+          suppressClickRef={suppressClickRef}
+          onSelect={onSelect}
+          onClear={onClear}
+          onHover={onHover}
+          onLeave={onLeave}
+        />
+        {hovered ? <HoverTooltip hovered={hovered} /> : null}
+      </>
+    );
   }
 
   return (
     <>
       <div
+        data-component="PixelGrid"
         role="grid"
         aria-label={`Pixel grid ${width} by ${height}`}
         aria-rowcount={height}
         aria-colcount={width}
         tabIndex={0}
-        onKeyDown={onKeyDown}
         className="grid outline-none focus-visible:ring-2 focus-visible:ring-ring"
         style={{
           width: width * PIXEL_CELL_SIZE,
@@ -158,29 +181,19 @@ export function PixelGrid({
             hex={cell.hex}
             selected={selectedKey === `${cell.x}-${cell.y}`}
             showGrid={showGrid}
+            showMismatch={cell.mismatch}
             suppressClickRef={suppressClickRef}
             onSelect={onSelect}
             onHover={onHover}
             onLeave={onLeave}
+            onClear={onClear}
+            selectedCoord={selected}
+            gridWidth={width}
+            gridHeight={height}
           />
         ))}
       </div>
-      {hovered
-        ? createPortal(
-            <div
-              role="tooltip"
-              className="pointer-events-none fixed z-50 rounded-md bg-neutral-950 px-2.5 py-2 text-[11px] leading-4 text-white shadow-lg"
-              style={{ left: hovered.left, top: hovered.top }}
-            >
-              <div className="font-medium">Pixel</div>
-              <div>X: {hovered.x}</div>
-              <div>Y: {hovered.y}</div>
-              <div className="mt-1">RGB: {hovered.rgb}</div>
-              <div>HEX: {hovered.hex}</div>
-            </div>,
-            document.body,
-          )
-        : null}
+      {hovered ? <HoverTooltip hovered={hovered} /> : null}
     </>
   );
 }

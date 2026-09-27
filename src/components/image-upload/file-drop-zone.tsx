@@ -1,4 +1,4 @@
-import { useRef, type DragEvent, type ReactNode } from "react";
+import { useRef, useState, type DragEvent, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type FileDropZoneProps = {
@@ -19,6 +19,7 @@ export function FileDropZone({
   onFile,
 }: FileDropZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [dragActive, setDragActive] = useState(false);
 
   function handleFiles(files: FileList | null): void {
     const file = files?.[0];
@@ -29,15 +30,22 @@ export function FileDropZone({
 
   function onDrop(event: DragEvent<HTMLElement>): void {
     event.preventDefault();
+    setDragActive(false);
     handleFiles(event.dataTransfer.files);
   }
 
   function onDragOver(event: DragEvent<HTMLElement>): void {
     event.preventDefault();
+    setDragActive(true);
+  }
+
+  function onDragLeave(event: DragEvent<HTMLElement>): void {
+    event.preventDefault();
+    setDragActive(false);
   }
 
   return (
-    <section className="flex flex-col gap-3">
+    <section data-component="FileDropZone" className="flex flex-col gap-3">
       <div>
         <h2 className="text-sm font-semibold tracking-tight">{title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>
@@ -47,15 +55,19 @@ export function FileDropZone({
         onClick={() => inputRef.current?.click()}
         onDrop={onDrop}
         onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        aria-busy={dragActive}
         className={cn(
-          "flex min-h-32 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/40 px-6 py-6 text-center transition-colors",
-          "hover:border-foreground/30 hover:bg-muted/70",
+          "flex min-h-32 flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-6 py-6 text-center transition-colors",
+          dragActive
+            ? "border-primary bg-primary/5"
+            : "border-border bg-muted/40 hover:border-foreground/30 hover:bg-muted/70",
           "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
         )}
       >
         <span className="text-muted-foreground">{icon}</span>
         <span className="text-sm text-muted-foreground">
-          Drop a file here, or
+          {dragActive ? "Drop to upload" : "Drop a file here, or"}
         </span>
         <span className="text-sm font-medium">{buttonLabel}</span>
       </button>

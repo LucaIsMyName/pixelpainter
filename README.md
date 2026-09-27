@@ -2,7 +2,7 @@
 
 Client-side painting reference tool. Upload a photo, crop it to a canvas ratio, and inspect each square of a coarse pixel grid — including an approximate mix of the paints you have.
 
-Everything runs in the browser. There is no backend, database, or API.
+Everything runs in the browser. There is no backend or cloud sync. Your last session (grid, palette, crop, and uploaded photo) is saved on this device until you click **New** or clear site data.
 
 ## Scripts
 

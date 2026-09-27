@@ -1,5 +1,7 @@
 import { useRef } from "react";
+import { ArrowLeftRight } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,37 +25,62 @@ export function DimensionFields({
   const widthRef = useRef<HTMLInputElement>(null);
   const heightRef = useRef<HTMLInputElement>(null);
 
-  function commit(): void {
+  function readParsedDimensions(): {
+    width: number;
+    height: number;
+  } | null {
     const widthText = widthRef.current?.value ?? String(width);
     const heightText = heightRef.current?.value ?? String(height);
     const nextWidth = parseDimensionInput(widthText);
     const nextHeight = parseDimensionInput(heightText);
     if (nextWidth === null || nextHeight === null) {
+      return null;
+    }
+    return { width: nextWidth, height: nextHeight };
+  }
+
+  function resetInputs(nextWidth: number, nextHeight: number): void {
+    if (widthRef.current) {
+      widthRef.current.value = String(nextWidth);
+    }
+    if (heightRef.current) {
+      heightRef.current.value = String(nextHeight);
+    }
+  }
+
+  function commit(): void {
+    const parsed = readParsedDimensions();
+    if (!parsed) {
       toast.error("Width and height must be whole numbers.");
-      if (widthRef.current) {
-        widthRef.current.value = String(width);
-      }
-      if (heightRef.current) {
-        heightRef.current.value = String(height);
-      }
+      resetInputs(width, height);
       return;
     }
-    const error = validateDimensions(nextWidth, nextHeight);
+    const error = validateDimensions(parsed.width, parsed.height);
     if (error) {
       toast.error(error);
-      if (widthRef.current) {
-        widthRef.current.value = String(width);
-      }
-      if (heightRef.current) {
-        heightRef.current.value = String(height);
-      }
+      resetInputs(width, height);
       return;
     }
-    onCommit(nextWidth, nextHeight);
+    onCommit(parsed.width, parsed.height);
+  }
+
+  function swapDimensions(): void {
+    const parsed = readParsedDimensions();
+    if (!parsed) {
+      toast.error("Width and height must be whole numbers.");
+      resetInputs(width, height);
+      return;
+    }
+    const error = validateDimensions(parsed.height, parsed.width);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    onCommit(parsed.height, parsed.width);
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div data-component="DimensionFields" className="grid grid-cols-[1fr_1fr_auto] items-end gap-2">
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="grid-width">Width</Label>
         <Input
@@ -87,6 +114,18 @@ export function DimensionFields({
           }}
         />
       </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        className="shrink-0"
+        disabled={disabled}
+        aria-label="Swap width and height"
+        title="Swap width and height"
+        onClick={swapDimensions}
+      >
+        <ArrowLeftRight />
+      </Button>
     </div>
   );
 }

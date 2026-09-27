@@ -1,5 +1,23 @@
-import { formatHsl, formatRgb, mixPercents, rgbDistance, rgbToHex } from "@/lib/color";
+import { Copy } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  formatHsl,
+  formatRgb,
+  mixPercents,
+  rgbDistance,
+  rgbToHex,
+} from "@/lib/color";
 import { useProject } from "@/state/project-context";
+
+async function copyText(label: string, value: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(value);
+    toast.success(`${label} copied.`);
+  } catch {
+    toast.error(`Could not copy ${label.toLowerCase()}.`);
+  }
+}
 
 export function PixelInspector() {
   const { state } = useProject();
@@ -12,12 +30,15 @@ export function PixelInspector() {
   if (!selected || !pixel) {
     return (
       <div className="text-sm text-muted-foreground">
-        Hover a square for a preview. Click a square to inspect its paint mix.
+        Hover a square for coordinates and color. Click a square to inspect its
+        paint mix.
       </div>
     );
   }
 
   const hex = rgbToHex(pixel.targetColor);
+  const rgb = formatRgb(pixel.targetColor);
+  const hsl = formatHsl(pixel.targetColor);
   const mixHex = rgbToHex(pixel.mix.reconstructed);
   const percents = mixPercents(pixel.mix, state.palette).sort(
     (a, b) => b.percent - a.percent,
@@ -25,9 +46,11 @@ export function PixelInspector() {
   const mismatch = rgbDistance(pixel.targetColor, pixel.mix.reconstructed);
 
   return (
-    <div className="flex flex-col gap-4 text-sm">
+    <div data-component="PixelInspector" className="flex flex-col gap-4 text-sm">
       <div>
-        <h2 className="text-sm font-semibold">Pixel {selected.x}, {selected.y}</h2>
+        <h2 className="text-sm font-semibold">
+          Pixel {selected.x}, {selected.y}
+        </h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Column {selected.x}, row {selected.y}
         </p>
@@ -37,25 +60,28 @@ export function PixelInspector() {
         <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Target color
         </h3>
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           <span
             className="size-12 shrink-0 rounded-md border border-border"
             style={{ backgroundColor: hex }}
             aria-hidden="true"
           />
-          <dl className="grid gap-0.5 font-mono text-xs">
-            <div>
-              <dt className="inline text-muted-foreground">HEX </dt>
-              <dd className="inline">{hex}</dd>
-            </div>
-            <div>
-              <dt className="inline text-muted-foreground">RGB </dt>
-              <dd className="inline">{formatRgb(pixel.targetColor)}</dd>
-            </div>
-            <div>
-              <dt className="inline text-muted-foreground">HSL </dt>
-              <dd className="inline">{formatHsl(pixel.targetColor)}</dd>
-            </div>
+          <dl className="grid min-w-0 flex-1 gap-1 font-mono text-xs">
+            <ColorRow
+              label="HEX"
+              value={hex}
+              onCopy={() => void copyText("HEX", hex)}
+            />
+            <ColorRow
+              label="RGB"
+              value={rgb}
+              onCopy={() => void copyText("RGB", rgb)}
+            />
+            <ColorRow
+              label="HSL"
+              value={hsl}
+              onCopy={() => void copyText("HSL", hsl)}
+            />
           </dl>
         </div>
       </section>
@@ -114,9 +140,35 @@ export function PixelInspector() {
   );
 }
 
+function ColorRow({
+  label,
+  value,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  onCopy: () => void;
+}) {
+  return (
+    <div data-component="ColorRow" className="flex items-center gap-1">
+      <dt className="w-8 shrink-0 text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 flex-1 truncate">{value}</dd>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        aria-label={`Copy ${label}`}
+        onClick={onCopy}
+      >
+        <Copy />
+      </Button>
+    </div>
+  );
+}
+
 function Swatch({ label, hex }: { label: string; hex: string }) {
   return (
-    <div className="flex items-center gap-2">
+    <div data-component="Swatch" className="flex items-center gap-2">
       <span
         className="size-8 rounded-md border border-border"
         style={{ backgroundColor: hex }}

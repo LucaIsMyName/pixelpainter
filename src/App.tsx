@@ -9,8 +9,8 @@ export default function App() {
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="light"
-      enableSystem={false}
+      defaultTheme="system"
+      enableSystem
       storageKey="pixelpainter-theme"
     >
       <TooltipProvider>

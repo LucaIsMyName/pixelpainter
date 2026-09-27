@@ -19,6 +19,12 @@ export {
   largestCenteredCrop,
 } from "@/lib/image-processing/crop";
 export type { CropHandle } from "@/lib/image-processing/crop";
-export { isSupportedImageFile, loadImageFile, releaseSource } from "@/lib/image-processing/load";
+export {
+  isSupportedImageFile,
+  loadImageBlob,
+  loadImageFile,
+  releaseSource,
+} from "@/lib/image-processing/load";
 export { sampleGrid } from "@/lib/image-processing/sample";
+export { buildPixelMatrixAsync } from "@/lib/image-processing/build-matrix-async";
 export { buildPixelMatrix, mixTargetColors, remixPixels } from "@/lib/image-processing/matrix-from-image";

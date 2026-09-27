@@ -25,6 +25,7 @@ function PopoverContent({
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
+        data-component="PopoverContent"
         data-slot="popover-content"
         align={align}
         sideOffset={sideOffset}
@@ -41,12 +42,13 @@ function PopoverContent({
 function PopoverAnchor({
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
-  return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />
+  return <PopoverPrimitive.Anchor data-component="PopoverAnchor" data-slot="popover-anchor" {...props} />
 }
 
 function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
+      data-component="PopoverHeader"
       data-slot="popover-header"
       className={cn("flex flex-col gap-0.5 text-sm", className)}
       {...props}
@@ -57,6 +59,7 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
 function PopoverTitle({ className, ...props }: React.ComponentProps<"h2">) {
   return (
     <div
+      data-component="PopoverTitle"
       data-slot="popover-title"
       className={cn("font-medium", className)}
       {...props}
@@ -70,6 +73,7 @@ function PopoverDescription({
 }: React.ComponentProps<"p">) {
   return (
     <p
+      data-component="PopoverDescription"
       data-slot="popover-description"
       className={cn("text-muted-foreground", className)}
       {...props}

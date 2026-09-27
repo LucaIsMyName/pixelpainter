@@ -1,8 +1,18 @@
 import { Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createPaintColor, normalizeHex } from "@/lib/color";
+import {
+  PALETTE_PRESETS,
+  paletteFromPreset,
+} from "@/lib/color/palette-presets";
 import { useProject } from "@/state/project-context";
 
 type PaletteEditorProps = {
@@ -28,25 +38,46 @@ export function PaletteEditor({ compact = false }: PaletteEditorProps) {
   }
 
   return (
-    <div className="flex min-h-0 flex-col gap-2">
-      <div className="flex items-center justify-between gap-2">
+    <div data-component="PaletteEditor" className="flex min-h-0 flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Label>Paint palette</Label>
-        <Button
-          type="button"
-          variant="outline"
-          size="xs"
-          onClick={() =>
-            updatePalette([
-              ...state.palette,
-              createPaintColor("New paint", "#808080"),
-            ])
-          }
-        >
-          <Plus />
-          Add
-        </Button>
+        <div className="flex items-center gap-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={buttonVariants({ variant: "outline", size: "xs" })}
+            >
+              Presets
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {PALETTE_PRESETS.map((preset) => (
+                <DropdownMenuItem
+                  key={preset.id}
+                  onClick={() => updatePalette(paletteFromPreset(preset))}
+                >
+                  <span className="font-medium">{preset.label}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            type="button"
+            variant="outline"
+            size="xs"
+            onClick={() =>
+              updatePalette([
+                ...state.palette,
+                createPaintColor("New paint", "#808080"),
+              ])
+            }
+          >
+            <Plus />
+            Add
+          </Button>
+        </div>
       </div>
-      <ul className={`flex flex-col gap-2 ${compact ? "" : "min-h-0 overflow-auto pr-1"}`}>
+      <ul
+        className={`flex flex-col gap-2 ${compact ? "" : "min-h-0 overflow-auto pr-1"}`}
+      >
         {state.palette.map((paint) => (
           <li
             key={paint.id}

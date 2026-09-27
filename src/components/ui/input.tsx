@@ -4,6 +4,7 @@ import { cn } from "cn"
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input
+      data-component="Input"
       type={type}
       data-slot="input"
       className={cn(
