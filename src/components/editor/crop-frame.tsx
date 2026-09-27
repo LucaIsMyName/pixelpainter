@@ -14,6 +14,8 @@ type CropFrameProps = {
   imageHeight: number;
   crop: Crop;
   aspect: number;
+  gridWidth: number;
+  gridHeight: number;
   onChange: (crop: Crop) => void;
 };
 
@@ -25,6 +27,8 @@ export function CropFrame({
   imageHeight,
   crop,
   aspect,
+  gridWidth,
+  gridHeight,
   onChange,
 }: CropFrameProps) {
   const [containerRef, containerSize] = useElementSize<HTMLDivElement>();
@@ -146,6 +150,7 @@ export function CropFrame({
         onPointerDown={(event) => startDrag("move", event)}
       >
         <div className="pointer-events-none absolute inset-0 outline outline-1 outline-black/40" />
+        <CropPixelGrid gridWidth={gridWidth} gridHeight={gridHeight} />
         <CropGuides />
         <div
           aria-hidden="true"
@@ -170,6 +175,67 @@ export function CropFrame({
         ))}
       </div>
     </div>
+  );
+}
+
+function CropPixelGrid({
+  gridWidth,
+  gridHeight,
+}: {
+  gridWidth: number;
+  gridHeight: number;
+}) {
+  if (gridWidth < 2 && gridHeight < 2) {
+    return null;
+  }
+
+  const verticalLines = Array.from(
+    { length: Math.max(0, gridWidth - 1) },
+    (_, index) => {
+      const fraction = ((index + 1) / gridWidth) * 100;
+      return `${fraction}%`;
+    },
+  );
+  const horizontalLines = Array.from(
+    { length: Math.max(0, gridHeight - 1) },
+    (_, index) => {
+      const fraction = ((index + 1) / gridHeight) * 100;
+      return `${fraction}%`;
+    },
+  );
+
+  return (
+    <svg
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 size-full"
+    >
+      {verticalLines.map((x) => (
+        <line
+          key={`v-${x}`}
+          x1={x}
+          y1="0"
+          x2={x}
+          y2="100%"
+          stroke="white"
+          strokeOpacity={0.22}
+          strokeWidth={0.75}
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+      {horizontalLines.map((y) => (
+        <line
+          key={`h-${y}`}
+          x1="0"
+          y1={y}
+          x2="100%"
+          y2={y}
+          stroke="white"
+          strokeOpacity={0.22}
+          strokeWidth={0.75}
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+    </svg>
   );
 }
 

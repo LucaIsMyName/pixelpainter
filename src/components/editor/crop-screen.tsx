@@ -16,6 +16,8 @@ function CropSidebar() {
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           Choose the part of the photo that maps onto a {state.width} ×{" "}
           {state.height} canvas. The frame stays locked to that aspect ratio.
+          Dashed lines are thirds; the faint grid is {state.width}×{state.height}{" "}
+          paint squares.
         </p>
       </div>
       <DimensionFields
@@ -54,6 +56,8 @@ export function CropScreen() {
       imageHeight={state.source.height}
       crop={state.crop}
       aspect={state.width / state.height}
+      gridWidth={state.width}
+      gridHeight={state.height}
       onChange={setCrop}
     />
   );

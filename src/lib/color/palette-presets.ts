@@ -10,8 +10,8 @@ export type PalettePreset = {
 
 export const PALETTE_PRESETS: PalettePreset[] = [
   {
-    id: "starter-cmyk",
-    label: "Starter (CMY + K + white)",
+    id: "cmyk-w",
+    label: "CMY+K+W",
     description: "Default subtractive set for mixing on screen.",
     colors: [
       { name: "Cyan", hex: "#00FFFF" },
@@ -19,6 +19,18 @@ export const PALETTE_PRESETS: PalettePreset[] = [
       { name: "Yellow", hex: "#FFFF00" },
       { name: "Black", hex: "#000000" },
       { name: "White", hex: "#FFFFFF" },
+    ],
+  },
+  {
+    id: "rgb",
+    label: "RGB",
+    description: "Default subtractive set for mixing on screen.",
+    colors: [
+      { name: "Red", hex: "#f00" },
+      { name: "Green", hex: "#0f0" },
+      { name: "Blue", hex: "#00f" },
+      { name: "White", hex: "#FFFFFF" },
+      { name: "Black", hex: "#000" },
     ],
   },
   {
