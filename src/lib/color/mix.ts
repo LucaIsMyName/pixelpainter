@@ -1,14 +1,14 @@
 import type { MixAlgorithm, PaintColor, PaintMix, RGBColor } from "@/types";
 import { MIX_ALGORITHM } from "@/types";
 import {
+  absorptionToRgb,
   colorsNearlyEqual,
-  linearToRgb,
   rgbFromPaint,
-  rgbToLinear,
+  rgbToAbsorption,
 } from "@/lib/color/convert";
 
-const MIX_ITERATIONS = 160;
-const MIX_LEARNING_RATE = 0.35;
+const MIX_ITERATIONS = 200;
+const MIX_LEARNING_RATE = 0.015;
 
 function projectOntoSimplex(vector: number[]): number[] {
   const n = vector.length;
@@ -44,13 +44,13 @@ function projectOntoSimplex(vector: number[]): number[] {
   return vector.map((value) => Math.max(value - theta, 0));
 }
 
-function mixLinear(
-  paletteLinear: Array<[number, number, number]>,
+function mixAbsorption(
+  paletteAbsorption: Array<[number, number, number]>,
   weights: number[],
 ): [number, number, number] {
   const mixed: [number, number, number] = [0, 0, 0];
-  for (let i = 0; i < paletteLinear.length; i += 1) {
-    const color = paletteLinear[i];
+  for (let i = 0; i < paletteAbsorption.length; i += 1) {
+    const color = paletteAbsorption[i];
     const weight = weights[i] ?? 0;
     if (!color) {
       continue;
@@ -77,16 +77,30 @@ function weightsRecord(
   return record;
 }
 
+function normalizedWeightValues(
+  palette: PaintColor[],
+  weights: Record<string, number>,
+): number[] {
+  const values = palette.map((paint) => Math.max(0, weights[paint.id] ?? 0));
+  const sum = values.reduce((total, value) => total + value, 0);
+  if (sum <= 0) {
+    return values.map(() => 1 / Math.max(values.length, 1));
+  }
+  return values.map((value) => value / sum);
+}
+
 export function reconstructFromWeights(
   palette: PaintColor[],
   weights: Record<string, number>,
 ): RGBColor {
-  const linearColors = palette.map((paint) => rgbToLinear(rgbFromPaint(paint)));
-  const values = palette.map((paint) => weights[paint.id] ?? 0);
-  const sum = values.reduce((total, value) => total + value, 0);
-  const normalized =
-    sum > 0 ? values.map((value) => value / sum) : values.map(() => 1 / Math.max(values.length, 1));
-  return linearToRgb(mixLinear(linearColors, normalized));
+  const paletteAbsorption = palette.map((paint) =>
+    rgbToAbsorption(rgbFromPaint(paint)),
+  );
+  const mixed = mixAbsorption(
+    paletteAbsorption,
+    normalizedWeightValues(palette, weights),
+  );
+  return absorptionToRgb(mixed);
 }
 
 export function createPaintMix(
@@ -128,19 +142,25 @@ export function calculatePaintMix(
     return createPaintMix(palette, weights);
   }
 
-  const paletteLinear = palette.map((paint) => rgbToLinear(rgbFromPaint(paint)));
-  const targetLinear = rgbToLinear(targetColor);
+  const paletteAbsorption = palette.map((paint) =>
+    rgbToAbsorption(rgbFromPaint(paint)),
+  );
+  const targetAbsorption = rgbToAbsorption(targetColor);
   let weights = palette.map(() => 1 / palette.length);
 
   for (let iteration = 0; iteration < MIX_ITERATIONS; iteration += 1) {
-    const mixed = mixLinear(paletteLinear, weights);
+    const mixed = mixAbsorption(paletteAbsorption, weights);
     const residual: [number, number, number] = [
-      mixed[0] - targetLinear[0],
-      mixed[1] - targetLinear[1],
-      mixed[2] - targetLinear[2],
+      mixed[0] - targetAbsorption[0],
+      mixed[1] - targetAbsorption[1],
+      mixed[2] - targetAbsorption[2],
     ];
-    const gradient = paletteLinear.map((color) => {
-      return color[0] * residual[0] + color[1] * residual[1] + color[2] * residual[2];
+    const gradient = paletteAbsorption.map((color) => {
+      return (
+        color[0] * residual[0] +
+        color[1] * residual[1] +
+        color[2] * residual[2]
+      );
     });
     const next = weights.map(
       (weight, index) => weight - MIX_LEARNING_RATE * (gradient[index] ?? 0),

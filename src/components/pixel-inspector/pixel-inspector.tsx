@@ -133,8 +133,9 @@ export function PixelInspector() {
       </section>
 
       <p className="text-[11px] leading-relaxed text-muted-foreground">
-        This mixture is an RGB approximation. Real acrylic or oil paint does not
-        mix the same way as light on a screen.
+        This mixture is an RGB absorption estimate, not a physical pigment
+        recipe. Real acrylic or oil paint does not mix the same way as light on
+        a screen.
       </p>
     </div>
   );

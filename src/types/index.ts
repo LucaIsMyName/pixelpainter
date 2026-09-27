@@ -16,8 +16,9 @@ export type PaintColor = {
   hex: string;
 };
 
-export const MIX_ALGORITHM = "rgb-linear-nnls" as const;
-export type MixAlgorithm = typeof MIX_ALGORITHM;
+export const MIX_ALGORITHM = "rgb-absorb-nnls" as const;
+export const LEGACY_MIX_ALGORITHM = "rgb-linear-nnls" as const;
+export type MixAlgorithm = typeof MIX_ALGORITHM | typeof LEGACY_MIX_ALGORITHM;
 
 export type PaintMix = {
   algorithm: MixAlgorithm;

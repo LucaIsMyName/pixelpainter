@@ -87,8 +87,14 @@ describe("matrix serialization", () => {
     if (!result.ok) {
       return;
     }
-    expect(result.value.pixels[0]?.[0]?.mix.weights.cyan).toBeCloseTo(0.4);
-    expect(result.value.pixels[0]?.[0]?.mix.weights.black).toBeCloseTo(0.6);
+    expect(result.value.pixels[0]?.[0]?.targetColor).toEqual({
+      r: 128,
+      g: 128,
+      b: 128,
+    });
+    expect(result.value.pixels[0]?.[0]?.mix.algorithm).toBe("rgb-absorb-nnls");
+    expect(result.value.pixels[0]?.[0]?.mix.weights.cyan).toBeTypeOf("number");
+    expect(result.value.pixels[0]?.[0]?.mix.weights.black).toBeTypeOf("number");
   });
 
   it("rejects an unknown format", () => {

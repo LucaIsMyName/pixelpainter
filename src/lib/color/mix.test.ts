@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calculatePaintMix, mixPercents } from "@/lib/color/mix";
 import { DEFAULT_PALETTE } from "@/lib/color/palette";
-import { hexToRgb } from "@/lib/color/convert";
+import { hexToRgb, rgbToHex } from "@/lib/color/convert";
 
 describe("calculatePaintMix", () => {
   it("assigns 100% to an exact palette color", () => {
@@ -44,5 +44,24 @@ describe("calculatePaintMix", () => {
     const mix = calculatePaintMix(target, palette);
     expect(mix.weights.black ?? 0).toBeGreaterThan(0.2);
     expect(mix.weights.white ?? 0).toBeGreaterThan(0.2);
+  });
+
+  it("does not dump leftover mass into black for a bright mint", () => {
+    const target = hexToRgb("#2EDCA1");
+    expect(target).not.toBeNull();
+    if (!target) {
+      return;
+    }
+    const mix = calculatePaintMix(target, DEFAULT_PALETTE);
+    const percents = mixPercents(mix, DEFAULT_PALETTE);
+    const byId = Object.fromEntries(
+      percents.map((entry) => [entry.paint.id, entry.percent]),
+    );
+    const total = percents.reduce((sum, item) => sum + item.percent, 0);
+    expect(total).toBeCloseTo(100, 5);
+    expect(byId.black ?? 0).toBeLessThan(10);
+    expect(byId.cyan ?? 0).toBeGreaterThan(byId.yellow ?? 0);
+    expect(byId.yellow ?? 0).toBeGreaterThan(0);
+    expect(rgbToHex(mix.reconstructed).startsWith("#")).toBe(true);
   });
 });

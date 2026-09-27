@@ -62,22 +62,93 @@ export function AppHeader() {
 
   return (
     <>
-      <header data-component="AppHeader" className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-3">
+      <header
+        data-component="AppHeader"
+        className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-3"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <div
             aria-hidden="true"
-            className="grid size-6 shrink-0 grid-cols-2 overflow-hidden rounded-sm border border-foreground/20"
+            className="grid size-6 shrink-0 grid-cols-9 overflow-hidden rounded-sm border border-foreground/20"
           >
             <span className="bg-[#c47b4a]" />
-            <span className="bg-[#6d8a6a]" />
             <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
+            <span className="bg-[#4f6d8a]" />
+            <span className="bg-[#c47b4a]" />
+            <span className="bg-[#d9c27a]" />
+            <span className="bg-[#6d8a6a]" />
             <span className="bg-[#4f6d8a]" />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold tracking-tight">
               PixelPainter
             </p>
-            <p className="hidden text-[11px] leading-none text-muted-foreground sm:block">
+            <p className="hidden text-[11px] leading-none text-muted-foreground ">
               Painting reference
             </p>
           </div>

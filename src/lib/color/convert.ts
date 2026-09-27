@@ -15,6 +15,8 @@ export function linearChannelToSrgb(channel: number): number {
   return Math.round(clamp(s, 0, 1) * 255);
 }
 
+export const LINEAR_ABSORPTION_EPSILON = 1 / 255;
+
 export function rgbToLinear(color: RGBColor): [number, number, number] {
   return [
     srgbChannelToLinear(color.r),
@@ -29,6 +31,36 @@ export function linearToRgb(linear: [number, number, number]): RGBColor {
     g: linearChannelToSrgb(linear[1]),
     b: linearChannelToSrgb(linear[2]),
   };
+}
+
+export function linearToAbsorption(
+  linear: [number, number, number],
+): [number, number, number] {
+  return [
+    -Math.log(Math.max(linear[0], LINEAR_ABSORPTION_EPSILON)),
+    -Math.log(Math.max(linear[1], LINEAR_ABSORPTION_EPSILON)),
+    -Math.log(Math.max(linear[2], LINEAR_ABSORPTION_EPSILON)),
+  ];
+}
+
+export function absorptionToLinear(
+  absorption: [number, number, number],
+): [number, number, number] {
+  return [
+    Math.exp(-absorption[0]),
+    Math.exp(-absorption[1]),
+    Math.exp(-absorption[2]),
+  ];
+}
+
+export function rgbToAbsorption(color: RGBColor): [number, number, number] {
+  return linearToAbsorption(rgbToLinear(color));
+}
+
+export function absorptionToRgb(
+  absorption: [number, number, number],
+): RGBColor {
+  return linearToRgb(absorptionToLinear(absorption));
 }
 
 export function rgbToHex(color: RGBColor): string {

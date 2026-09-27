@@ -1,6 +1,6 @@
 import type { PaintColor, PixelData } from "@/types";
-import { MIX_ALGORITHM } from "@/types";
-import { createPaintMix, hexToRgb, rgbToHex } from "@/lib/color";
+import { LEGACY_MIX_ALGORITHM, MIX_ALGORITHM } from "@/types";
+import { calculatePaintMix, hexToRgb, rgbToHex } from "@/lib/color";
 import { validateDimensions } from "@/lib/image-processing/dimensions";
 
 export const MATRIX_FORMAT = "pixelpainter" as const;
@@ -51,24 +51,6 @@ function uniqueNameKeys(palette: PaintColor[]): Map<string, string> {
     keys.set(paint.id, key);
   }
   return keys;
-}
-
-function mixValueForPaint(
-  mix: Record<string, unknown>,
-  paint: PaintColor,
-  nameKey: string,
-): number {
-  const candidates = [nameKey, paint.name.trim(), paint.id];
-  for (const key of candidates) {
-    if (key.length === 0) {
-      continue;
-    }
-    const value = mix[key];
-    if (typeof value === "number" && Number.isFinite(value)) {
-      return Math.max(0, value);
-    }
-  }
-  return 0;
 }
 
 function parsePaintColor(value: unknown, index: number): PaintColor | string {
@@ -148,6 +130,18 @@ export function parseMatrix(text: string): ParseResult<ParsedMatrix> {
     };
   }
 
+  if (parsed.algorithm !== undefined) {
+    if (
+      parsed.algorithm !== MIX_ALGORITHM &&
+      parsed.algorithm !== LEGACY_MIX_ALGORITHM
+    ) {
+      return {
+        ok: false,
+        error: `This file uses mix algorithm ${String(parsed.algorithm)}, which this app cannot open.`,
+      };
+    }
+  }
+
   const width = parsed.width;
   const height = parsed.height;
   if (typeof width !== "number" || typeof height !== "number") {
@@ -205,15 +199,9 @@ export function parseMatrix(text: string): ParseResult<ParsedMatrix> {
       if (!isRecord(cell.mix)) {
         return { ok: false, error: `Pixel ${x},${y} is missing mix data.` };
       }
-      const nameKeys = uniqueNameKeys(palette);
-      const weights: Record<string, number> = {};
-      for (const paint of palette) {
-        const nameKey = nameKeys.get(paint.id) ?? paint.name.trim();
-        weights[paint.id] = mixValueForPaint(cell.mix, paint, nameKey);
-      }
       parsedRow.push({
         targetColor,
-        mix: createPaintMix(palette, weights),
+        mix: calculatePaintMix(targetColor, palette),
       });
     }
     pixels.push(parsedRow);
