@@ -21,6 +21,7 @@ type PixelGridCanvasProps = {
   selected: { x: number; y: number } | null;
   showGrid: boolean;
   showMismatchHighlight: boolean;
+  showMixedColors: boolean;
   suppressClickRef: RefObject<boolean>;
   onSelect: (x: number, y: number) => void;
   onClear: () => void;
@@ -33,6 +34,7 @@ export function PixelGridCanvas({
   selected,
   showGrid,
   showMismatchHighlight,
+  showMixedColors,
   suppressClickRef,
   onSelect,
   onClear,
@@ -65,7 +67,9 @@ export function PixelGridCanvas({
         if (!pixel) {
           continue;
         }
-        context.fillStyle = rgbToHex(pixel.targetColor);
+        context.fillStyle = rgbToHex(
+          showMixedColors ? pixel.mix.reconstructed : pixel.targetColor,
+        );
         context.fillRect(
           x * PIXEL_CELL_SIZE,
           y * PIXEL_CELL_SIZE,
@@ -124,7 +128,7 @@ export function PixelGridCanvas({
         PIXEL_CELL_SIZE - 4,
       );
     }
-  }, [height, pixels, selected, showGrid, showMismatchHighlight, width]);
+  }, [height, pixels, selected, showGrid, showMismatchHighlight, showMixedColors, width]);
 
   const pickCell = useCallback(
     (clientX: number, clientY: number) => {

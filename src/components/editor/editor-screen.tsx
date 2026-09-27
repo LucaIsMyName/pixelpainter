@@ -40,6 +40,7 @@ function SettingsPanel() {
     goToCrop,
     loadImage,
     setMismatchHighlight,
+    setShowMixedColors,
     setReferenceSplit,
   } = useProject();
   const hasSource = Boolean(state.source);
@@ -111,6 +112,21 @@ function SettingsPanel() {
             id="mismatch-highlight"
             checked={state.showMismatchHighlight}
             onCheckedChange={setMismatchHighlight}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <Label htmlFor="mixed-colors" className="text-xs">
+              Show mixed colors
+            </Label>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              Fill squares with the palette mix instead of the sampled target.
+            </p>
+          </div>
+          <Switch
+            id="mixed-colors"
+            checked={state.showMixedColors}
+            onCheckedChange={setShowMixedColors}
           />
         </div>
         <div className="flex flex-col gap-2">

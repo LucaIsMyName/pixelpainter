@@ -278,6 +278,7 @@ export function PixelViewport() {
             selected={state.selectedPixel}
             showGrid={zoom >= 2}
             showMismatchHighlight={state.showMismatchHighlight}
+            showMixedColors={state.showMixedColors}
             suppressClickRef={suppressClickRef}
             onSelect={(x, y) => selectPixel({ x, y })}
             onClear={() => selectPixel(null)}

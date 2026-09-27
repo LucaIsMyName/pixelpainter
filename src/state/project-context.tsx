@@ -48,6 +48,7 @@ type ProjectContextValue = {
   goToCrop: () => void;
   newProject: () => void;
   setMismatchHighlight: (enabled: boolean) => void;
+  setShowMixedColors: (enabled: boolean) => void;
   setReferenceSplit: (enabled: boolean, opacity?: number) => void;
   hasRestorableWork: () => boolean;
 };
@@ -334,6 +335,10 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "set-mismatch-highlight", enabled });
   }, []);
 
+  const setShowMixedColors = useCallback((enabled: boolean) => {
+    dispatch({ type: "set-mixed-colors", enabled });
+  }, []);
+
   const setReferenceSplit = useCallback((enabled: boolean, opacity?: number) => {
     dispatch({ type: "set-reference-split", enabled, opacity });
   }, []);
@@ -355,6 +360,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       goToCrop,
       newProject,
       setMismatchHighlight,
+      setShowMixedColors,
       setReferenceSplit,
       hasRestorableWork,
     }),
@@ -369,6 +375,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       setCrop,
       setDimensions,
       setMismatchHighlight,
+      setShowMixedColors,
       setReferenceSplit,
       state,
       updatePalette,

@@ -21,6 +21,7 @@ export type AppState = PixelPainterProject & {
   isProcessing: boolean;
   processingKind: ProcessingKind;
   showMismatchHighlight: boolean;
+  showMixedColors: boolean;
   referenceSplitEnabled: boolean;
   referenceSplitOpacity: number;
 };
@@ -37,6 +38,7 @@ export const initialState: AppState = {
   isProcessing: false,
   processingKind: "idle",
   showMismatchHighlight: false,
+  showMixedColors: false,
   referenceSplitEnabled: false,
   referenceSplitOpacity: 0.45,
 };
@@ -74,6 +76,7 @@ export type AppAction =
       selectedPixel: PixelCoord | null;
     }
   | { type: "set-mismatch-highlight"; enabled: boolean }
+  | { type: "set-mixed-colors"; enabled: boolean }
   | { type: "set-reference-split"; enabled: boolean; opacity?: number }
   | { type: "reset" };
 
@@ -144,6 +147,8 @@ export function projectReducer(state: AppState, action: AppAction): AppState {
       };
     case "set-mismatch-highlight":
       return { ...state, showMismatchHighlight: action.enabled };
+    case "set-mixed-colors":
+      return { ...state, showMixedColors: action.enabled };
     case "set-reference-split":
       return {
         ...state,

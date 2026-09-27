@@ -1,7 +1,7 @@
 {
   "name": "pixelpainter",
   "private": true,
-  "version": "2026.9.27.7",
+  "version": "2026.9.27.8",
   "type": "module",
   "scripts": {
     "dev": "vite",

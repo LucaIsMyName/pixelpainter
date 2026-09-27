@@ -33,6 +33,7 @@ type PixelGridProps = {
   selected: { x: number; y: number } | null;
   showGrid: boolean;
   showMismatchHighlight: boolean;
+  showMixedColors: boolean;
   suppressClickRef: RefObject<boolean>;
   onSelect: (x: number, y: number) => void;
   onClear: () => void;
@@ -70,6 +71,7 @@ export function PixelGrid({
   selected,
   showGrid,
   showMismatchHighlight,
+  showMixedColors,
   suppressClickRef,
   onSelect,
   onClear,
@@ -86,18 +88,19 @@ export function PixelGrid({
       if (!pixel) {
         return;
       }
-      const hex = rgbToHex(pixel.targetColor);
+      const color = showMixedColors ? pixel.mix.reconstructed : pixel.targetColor;
+      const hex = rgbToHex(color);
       const position = tooltipPosition(clientX, clientY);
       setHovered({
         x,
         y,
         hex,
-        rgb: formatRgb(pixel.targetColor),
+        rgb: formatRgb(color),
         left: position.left,
         top: position.top,
       });
     },
-    [pixels],
+    [pixels, showMixedColors],
   );
 
   const onLeave = useCallback(() => {
@@ -126,7 +129,9 @@ export function PixelGrid({
         list.push({
           x,
           y,
-          hex: rgbToHex(pixel.targetColor),
+          hex: rgbToHex(
+            showMixedColors ? pixel.mix.reconstructed : pixel.targetColor,
+          ),
           mismatch:
             showMismatchHighlight &&
             rgbDistance(pixel.targetColor, pixel.mix.reconstructed) > 18,
@@ -134,7 +139,7 @@ export function PixelGrid({
       }
     }
     return list;
-  }, [height, pixels, showMismatchHighlight, width]);
+  }, [height, pixels, showMismatchHighlight, showMixedColors, width]);
 
   if (useCanvas) {
     return (
@@ -145,6 +150,7 @@ export function PixelGrid({
           selected={selected}
           showGrid={showGrid}
           showMismatchHighlight={showMismatchHighlight}
+          showMixedColors={showMixedColors}
           suppressClickRef={suppressClickRef}
           onSelect={onSelect}
           onClear={onClear}
