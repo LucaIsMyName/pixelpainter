@@ -29,6 +29,68 @@ describe("matrix serialization", () => {
     });
   });
 
+  it("writes mix keys from the user-facing paint names", () => {
+    const palette = [
+      { id: "cyan", name: "Blue", hex: "#0006FF" },
+      { id: "95d1e1c5-fd3a-4b64-b840-c263fd3c8e52", name: "Orange", hex: "#FF8802" },
+    ];
+    const targetColor = { r: 144, g: 135, b: 130 };
+    const pixel = {
+      targetColor,
+      mix: calculatePaintMix(targetColor, palette),
+    };
+    const row = [pixel, pixel, pixel, pixel];
+    const pixels = [row, row, row, row];
+    const text = serializeMatrix(4, 4, palette, pixels);
+    const parsedJson = JSON.parse(text) as {
+      palette: Array<{ id: string; name: string }>;
+      pixels: Array<Array<{ mix: Record<string, number> }>>;
+    };
+    expect(parsedJson.palette.map((paint) => paint.id)).toEqual(["Blue", "Orange"]);
+    expect(parsedJson.pixels[0]?.[0]?.mix).toHaveProperty("Blue");
+    expect(parsedJson.pixels[0]?.[0]?.mix).toHaveProperty("Orange");
+    expect(parsedJson.pixels[0]?.[0]?.mix).not.toHaveProperty("cyan");
+    expect(parsedJson.pixels[0]?.[0]?.mix).not.toHaveProperty(
+      "95d1e1c5-fd3a-4b64-b840-c263fd3c8e52",
+    );
+
+    const parsed = parseMatrix(text);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+    expect(parsed.value.palette[0]?.name).toBe("Blue");
+    expect(parsed.value.pixels[0]?.[0]?.mix.weights.Blue).toBeTypeOf("number");
+  });
+
+  it("still reads older matrix files that keyed mixes by id", () => {
+    const result = parseMatrix(
+      JSON.stringify({
+        format: "pixelpainter",
+        version: 1,
+        width: 4,
+        height: 4,
+        palette: [
+          { id: "cyan", name: "Blue", hex: "#0006FF" },
+          { id: "black", name: "Black", hex: "#000000" },
+        ],
+        algorithm: "rgb-linear-nnls",
+        pixels: Array.from({ length: 4 }, () =>
+          Array.from({ length: 4 }, () => ({
+            hex: "#808080",
+            mix: { cyan: 0.4, black: 0.6 },
+          })),
+        ),
+      }),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.pixels[0]?.[0]?.mix.weights.cyan).toBeCloseTo(0.4);
+    expect(result.value.pixels[0]?.[0]?.mix.weights.black).toBeCloseTo(0.6);
+  });
+
   it("rejects an unknown format", () => {
     const result = parseMatrix(JSON.stringify({ format: "other", version: 1 }));
     expect(result.ok).toBe(false);

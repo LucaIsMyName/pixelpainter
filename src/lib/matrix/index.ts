@@ -32,6 +32,45 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function uniqueNameKeys(palette: PaintColor[]): Map<string, string> {
+  const used = new Set<string>();
+  const keys = new Map<string, string>();
+  for (const paint of palette) {
+    const base = paint.name.trim() || "Untitled";
+    let key = base;
+    if (used.has(key)) {
+      key = `${base} ${paint.hex}`;
+    }
+    let suffix = 2;
+    const stem = key;
+    while (used.has(key)) {
+      key = `${stem} ${suffix}`;
+      suffix += 1;
+    }
+    used.add(key);
+    keys.set(paint.id, key);
+  }
+  return keys;
+}
+
+function mixValueForPaint(
+  mix: Record<string, unknown>,
+  paint: PaintColor,
+  nameKey: string,
+): number {
+  const candidates = [nameKey, paint.name.trim(), paint.id];
+  for (const key of candidates) {
+    if (key.length === 0) {
+      continue;
+    }
+    const value = mix[key];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return Math.max(0, value);
+    }
+  }
+  return 0;
+}
+
 function parsePaintColor(value: unknown, index: number): PaintColor | string {
   if (!isRecord(value)) {
     return `Palette color ${index + 1} is invalid.`;
@@ -55,17 +94,30 @@ export function serializeMatrix(
   palette: PaintColor[],
   pixels: PixelData[][],
 ): string {
+  const nameKeys = uniqueNameKeys(palette);
+  const exportedPalette: PaintColor[] = palette.map((paint) => ({
+    id: nameKeys.get(paint.id) ?? paint.name.trim(),
+    name: paint.name.trim() || "Untitled",
+    hex: paint.hex,
+  }));
   const document: PixelPainterMatrixV1 = {
     format: MATRIX_FORMAT,
     version: MATRIX_VERSION,
     width,
     height,
-    palette,
+    palette: exportedPalette,
     pixels: pixels.map((row) =>
-      row.map((pixel) => ({
-        hex: rgbToHex(pixel.targetColor),
-        mix: pixel.mix.weights,
-      })),
+      row.map((pixel) => {
+        const mix: Record<string, number> = {};
+        for (const paint of palette) {
+          const key = nameKeys.get(paint.id) ?? paint.name.trim();
+          mix[key] = pixel.mix.weights[paint.id] ?? 0;
+        }
+        return {
+          hex: rgbToHex(pixel.targetColor),
+          mix,
+        };
+      }),
     ),
     algorithm: MIX_ALGORITHM,
     createdAt: new Date().toISOString(),
@@ -153,10 +205,11 @@ export function parseMatrix(text: string): ParseResult<ParsedMatrix> {
       if (!isRecord(cell.mix)) {
         return { ok: false, error: `Pixel ${x},${y} is missing mix data.` };
       }
+      const nameKeys = uniqueNameKeys(palette);
       const weights: Record<string, number> = {};
       for (const paint of palette) {
-        const value = cell.mix[paint.id];
-        weights[paint.id] = typeof value === "number" && Number.isFinite(value) ? Math.max(0, value) : 0;
+        const nameKey = nameKeys.get(paint.id) ?? paint.name.trim();
+        weights[paint.id] = mixValueForPaint(cell.mix, paint, nameKey);
       }
       parsedRow.push({
         targetColor,

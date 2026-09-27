@@ -145,6 +145,15 @@ export function CropFrame({
         onPointerDown={(event) => startDrag("move", event)}
       >
         <div className="pointer-events-none absolute inset-0 outline outline-1 outline-black/40" />
+        <CropGuides />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-1/2 size-4 -translate-x-1/2 -translate-y-1/2"
+        >
+          <span className="absolute top-0 left-1/2 h-full w-px -translate-x-1/2 rotate-45 bg-white shadow-[0_0_0_1px_rgb(0_0_0_/_0.5)]" />
+          <span className="absolute top-0 left-1/2 h-full w-px -translate-x-1/2 -rotate-45 bg-white shadow-[0_0_0_1px_rgb(0_0_0_/_0.5)]" />
+          <span className="absolute top-1/2 left-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white ring-1 ring-black/50" />
+        </div>
         {HANDLES.map((handle) => (
           <button
             key={handle}
@@ -163,7 +172,62 @@ export function CropFrame({
   );
 }
 
-function handleStyle(handle: CropHandle): { left?: string; right?: string; top?: string; bottom?: string; cursor: string } {
+function CropGuides() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 size-full"
+    >
+      <ThirdLine x1="33.333%" y1="0" x2="33.333%" y2="100%" />
+      <ThirdLine x1="66.667%" y1="0" x2="66.667%" y2="100%" />
+      <ThirdLine x1="0" y1="33.333%" x2="100%" y2="33.333%" />
+      <ThirdLine x1="0" y1="66.667%" x2="100%" y2="66.667%" />
+    </svg>
+  );
+}
+
+function ThirdLine({
+  x1,
+  y1,
+  x2,
+  y2,
+}: {
+  x1: string;
+  y1: string;
+  x2: string;
+  y2: string;
+}) {
+  return (
+    <>
+      <line
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke="black"
+        strokeOpacity="0.4"
+        strokeWidth="3"
+      />
+      <line
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke="white"
+        strokeWidth="1.25"
+        strokeDasharray="5 4"
+      />
+    </>
+  );
+}
+
+function handleStyle(handle: CropHandle): {
+  left?: string;
+  right?: string;
+  top?: string;
+  bottom?: string;
+  cursor: string;
+} {
   if (handle === "nw") {
     return { left: "-6px", top: "-6px", cursor: "nwse-resize" };
   }

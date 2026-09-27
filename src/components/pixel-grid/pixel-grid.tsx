@@ -1,8 +1,28 @@
 import { useCallback, useMemo, useState, type KeyboardEvent, type RefObject } from "react";
+import { createPortal } from "react-dom";
 import type { PixelData } from "@/types";
 import { rgbToHex, formatRgb } from "@/lib/color";
 import { PIXEL_CELL_SIZE } from "@/lib/image-processing/dimensions";
 import { PixelCell } from "@/components/pixel-grid/pixel-cell";
+
+const TOOLTIP_OFFSET = 12;
+const TOOLTIP_WIDTH = 168;
+const TOOLTIP_HEIGHT = 108;
+
+function tooltipPosition(clientX: number, clientY: number): { left: number; top: number } {
+  let left = clientX + TOOLTIP_OFFSET;
+  let top = clientY + TOOLTIP_OFFSET;
+  if (left + TOOLTIP_WIDTH > window.innerWidth - 8) {
+    left = clientX - TOOLTIP_WIDTH - TOOLTIP_OFFSET;
+  }
+  if (top + TOOLTIP_HEIGHT > window.innerHeight - 8) {
+    top = clientY - TOOLTIP_HEIGHT - TOOLTIP_OFFSET;
+  }
+  return {
+    left: Math.max(8, left),
+    top: Math.max(8, top),
+  };
+}
 
 type PixelGridProps = {
   pixels: PixelData[][];
@@ -42,13 +62,14 @@ export function PixelGrid({
         return;
       }
       const hex = rgbToHex(pixel.targetColor);
+      const position = tooltipPosition(clientX, clientY);
       setHovered({
         x,
         y,
         hex,
         rgb: formatRgb(pixel.targetColor),
-        left: clientX + 14,
-        top: clientY + 14,
+        left: position.left,
+        top: position.top,
       });
     },
     [pixels],
@@ -144,19 +165,22 @@ export function PixelGrid({
           />
         ))}
       </div>
-      {hovered ? (
-        <div
-          role="tooltip"
-          className="pointer-events-none fixed z-40 rounded-md bg-neutral-950 px-2.5 py-2 text-[11px] leading-4 text-white shadow-lg"
-          style={{ left: hovered.left, top: hovered.top }}
-        >
-          <div className="font-medium">Pixel</div>
-          <div>X: {hovered.x}</div>
-          <div>Y: {hovered.y}</div>
-          <div className="mt-1">RGB: {hovered.rgb}</div>
-          <div>HEX: {hovered.hex}</div>
-        </div>
-      ) : null}
+      {hovered
+        ? createPortal(
+            <div
+              role="tooltip"
+              className="pointer-events-none fixed z-50 rounded-md bg-neutral-950 px-2.5 py-2 text-[11px] leading-4 text-white shadow-lg"
+              style={{ left: hovered.left, top: hovered.top }}
+            >
+              <div className="font-medium">Pixel</div>
+              <div>X: {hovered.x}</div>
+              <div>Y: {hovered.y}</div>
+              <div className="mt-1">RGB: {hovered.rgb}</div>
+              <div>HEX: {hovered.hex}</div>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
